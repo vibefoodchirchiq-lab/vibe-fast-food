@@ -69,42 +69,4 @@ document.getElementById('orderForm').addEventListener('submit',async e=>{
   }catch(err){note.textContent='Не удалось отправить. Проверьте соединение и попробуйте ещё раз.';}
 });
 renderCats(); showCat('hotdog',document.querySelector('.cats button')); updateCart();
-// ===== ДАННЫЕ ПОКУПАТЕЛЯ =====
-(function () {
-  const KEY = 'vibe_customer_data';
-  const form = document.getElementById('orderForm');
 
-  if (!form) return;
-
-  const nameInput = form.querySelector('[name="name"]');
-  const phoneInput = form.querySelector('[name="phone"]');
-  const addressInput = form.querySelector('[name="address"]');
-
-  if (!nameInput  !phoneInput  !addressInput) return;
-
-  // Загружаем сохранённые данные
-  try {
-    const saved = JSON.parse(localStorage.getItem(KEY));
-
-    if (saved) {
-      nameInput.value = saved.name || '';
-      phoneInput.value = saved.phone || '';
-      addressInput.value = saved.address || '';
-    }
-  } catch (error) {
-    console.log('Данные покупателя не загружены');
-  }
-
-  // Сохраняем данные при заполнении
-  function saveCustomer() {
-    localStorage.setItem(KEY, JSON.stringify({
-      name: nameInput.value,
-      phone: phoneInput.value,
-      address: addressInput.value
-    }));
-  }
-
-  nameInput.addEventListener('input', saveCustomer);
-  phoneInput.addEventListener('input', saveCustomer);
-  addressInput.addEventListener('input', saveCustomer);
-})();
