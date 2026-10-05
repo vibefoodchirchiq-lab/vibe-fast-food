@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ff5a00">
+  <title>VIBE FAST FOOD — Заказ онлайн</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span>VIBE</span><small>FAST FOOD</small></div>
+  <button class="cart-top" onclick="openCart()">🛒 <b id="cartCount">0</b></button>
+</header>
+
+<main>
+  <section class="hero">
+    <div>
+      <p class="eyebrow">CHIRCHIQ • ДОСТАВКА</p>
+      <h1>Горячо.<br><span>Вкусно.</span><br>По-твоему.</h1>
+      <p>Выбирай любимое, добавляй в корзину и оформляй заказ за минуту.</p>
+    </div>
+  </section>
+
+  <nav class="cats" id="categories"></nav>
+  <section id="menu" class="menu"></section>
+</main>
+
+<button class="floating-cart" id="floatingCart" onclick="openCart()">
+  <span>🛒 Корзина</span><strong id="cartTotal">0 сум</strong>
+</button>
+
+<div class="overlay" id="overlay" onclick="closeCart(event)">
+  <aside class="cart" onclick="event.stopPropagation()">
+    <div class="cart-head"><h2>Ваш заказ</h2><button onclick="closeCart()">✕</button></div>
+    <div id="cartItems"></div>
+    <div class="cart-summary">
+      <div><span>Товары</span><b id="sumItems">0 сум</b></div>
+      <div><span>Доставка</span><b id="deliveryCost">Рассчитывается</b></div>
+      <div class="grand"><span>Итого</span><b id="grandTotal">0 сум</b></div>
+    </div>
+    <form id="orderForm">
+      <input name="name" required placeholder="Ваше имя">
+      <input name="phone" required type="tel" placeholder="Номер телефона">
+      <textarea name="address" required placeholder="Адрес доставки"></textarea>
+      <div class="switch">
+        <label><input type="radio" name="type" value="delivery" checked> Доставка</label>
+        <label><input type="radio" name="type" value="pickup"> Самовывоз</label>
+      </div>
+      <select name="payment">
+        <option value="cash">Наличными</option>
+        <option value="card">Картой</option>
+      </select>
+      <textarea name="comment" placeholder="Комментарий к заказу (необязательно)"></textarea>
+      <button class="submit" type="submit">ОФОРМИТЬ ЗАКАЗ →</button>
+      <p class="form-note" id="formNote"></p>
+    </form>
+  </aside>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
