@@ -26,7 +26,7 @@ const menu = [
   ]}
 ];
 
-const cats = [...menu.map(x => [x.cat, x.title])];
+const cats = menu.map(x => [x.cat, x.title]);
 let cart = [];
 
 const money = n => new Intl.NumberFormat('ru-RU').format(n) + " сум";
@@ -51,7 +51,7 @@ function showCat(id,btn){
         <article class="card">
           <div class="emoji">${it[2]}</div>
           <h3>${it[0]}</h3>
-          <div class="desc">${id==='combo'?'Выгодный набор VIBE':id==='sauce'?'Добавка к заказу':'Свежо и горячо'}</div>
+          <div class="desc">${id==='combo' ? 'Выгодный набор VIBE' : id==='sauce' ? 'Добавка к заказу' : 'Свежо и горячо'}</div>
           <div class="price">${it[1]} сум</div>
           <button class="add" onclick="addItem('${section.cat}',${i})">+ ДОБАВИТЬ</button>
         </article>
@@ -66,15 +66,18 @@ function addItem(cat,index){
   const key = cat + '-' + index;
   const old = cart.find(x => x.key === key);
 
-  if(old) old.qty++;
-  else cart.push({
-    key,
-    cat,
-    index,
-    name: it[0],
-    price: num(it[1]),
-    qty: 1
-  });
+  if(old) {
+    old.qty++;
+  } else {
+    cart.push({
+      key,
+      cat,
+      index,
+      name: it[0],
+      price: num(it[1]),
+      qty: 1
+    });
+  }
 
   updateCart();
 }
@@ -158,8 +161,8 @@ document.getElementById('orderForm').addEventListener('submit', async e => {
   const note = document.getElementById('formNote');
   note.textContent = 'Отправляем заказ…';
 
-  try{
-    const r = await fetch('/api/order',{
+  try {
+    const r = await fetch('/api/order', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
@@ -172,7 +175,7 @@ document.getElementById('orderForm').addEventListener('submit', async e => {
     updateCart();
     e.target.reset();
 
-  }catch(err){
+  } catch(err) {
     note.textContent = 'Не удалось отправить. Проверьте соединение и попробуйте ещё раз.';
   }
 });
