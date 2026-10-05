@@ -9,7 +9,9 @@ const menu = [
     ["Gamburger","20 000","🍔"],["Cheeseburger","25 000","🍔"],["Double Burger","35 000","🍔"],
     ["Double Cheese","40 000","🍔"],["VIBE Burger","25 000","🍔"],["VIBE Burger Chicken","20 000","🍔"]
   ]},
-  {cat:"sandwich", title:"Сэндвичи", items:[["Club Sandwich","35 000","🥪"]]},
+  {cat:"sandwich", title:"Сэндвичи", items:[
+    ["Club Sandwich","35 000","🥪"]
+  ]},
   {cat:"drinks", title:"Напитки", items:[
     ["Фанта 1 литр","12 000","🥤"],["Фанта 0.5","8 000","🥤"],["Фанта 250 мл","5 000","🥤"],
     ["Кола 1 литр","12 000","🥤"],["Кола 0.5","8 000","🥤"],["Кола 300 мл","6 000","🥤"],
@@ -26,6 +28,7 @@ const menu = [
 
 const cats = menu.map(x => [x.cat, x.title]);
 let cart = [];
+let customerLocation = null;
 
 const money = n => new Intl.NumberFormat('ru-RU').format(n) + " сум";
 const num = s => parseInt(String(s).replace(/\s/g,'')) || 0;
@@ -39,6 +42,7 @@ function renderCats(){
 function showCat(id,btn){
   document.querySelectorAll('.cats button').forEach(x => x.classList.remove('active'));
   btn.classList.add('active');
+
   const section = menu.find(x => x.cat === id);
 
   document.getElementById('menu').innerHTML = `
@@ -63,8 +67,18 @@ function addItem(cat,index){
   const key = cat + '-' + index;
   const old = cart.find(x => x.key === key);
 
-  if(old) old.qty++;
-  else cart.push({key,cat,index,name:it[0],price:num(it[1]),qty:1});
+  if(old){
+    old.qty++;
+  }else{
+    cart.push({
+      key,
+      cat,
+      index,
+      name: it[0],
+      price: num(it[1]),
+      qty: 1
+    });
+  }
 
   updateCart();
 }
@@ -72,8 +86,13 @@ function addItem(cat,index){
 function change(key,d){
   const x = cart.find(x => x.key === key);
   if(!x) return;
+
   x.qty += d;
-  if(x.qty <= 0) cart = cart.filter(x => x.key !== key);
+
+  if(x.qty <= 0){
+    cart = cart.filter(x => x.key !== key);
+  }
+
   updateCart();
 }
 
@@ -113,33 +132,110 @@ function closeCart(e){
   }
 }
 
+// =============================
+// ГЕОЛОКАЦИЯ
+// =============================
+
+function getLocation(){
+
+  const note = document.getElementById('locationNote');
+
+  if(!note){
+    return;
+  }
+
+  if(!navigator.geolocation){
+    note.textContent = '❌ Ваш браузер не поддерживает геолокацию.';
+    return;
+  }
+
+  note.textContent = '📍 Определяем ваше местоположение...';
+
+  navigator.geolocation.getCurrentPosition(
+
+    function(position){
+
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+
+      customerLocation = {
+        latitude: lat,
+        longitude: lon
+      };
+
+      note.textContent = '✅ Локация определена!';
+
+    },
+
+    function(error){
+
+      if(error.code === 1){
+        note.textContent =
+          '❌ Разрешите доступ к геолокации в настройках телефона.';
+      }else if(error.code === 2){
+        note.textContent =
+          '❌ Не удалось определить местоположение.';
+      }else if(error.code === 3){
+        note.textContent =
+          '❌ Время ожидания геолокации истекло. Попробуйте ещё раз.';
+      }else{
+        note.textContent =
+          '❌ Не удалось определить локацию. Попробуйте ещё раз.';
+      }
+
+    },
+
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    }
+
+  );
+}
+
+// =============================
+// ОФОРМЛЕНИЕ ЗАКАЗА
+// =============================
+
 document.getElementById('orderForm').addEventListener('submit', async e => {
+
   e.preventDefault();
 
   if(!cart.length){
-    document.getElementById('formNote').textContent = 'Добавьте товары в корзину.';
+    document.getElementById('formNote').textContent =
+      'Добавьте товары в корзину.';
     return;
   }
 
   const f = new FormData(e.target);
-  const items = cart.map(x => ({name:x.name,qty:x.qty,price:x.price}));
+
+  const items = cart.map(x => ({
+    name: x.name,
+    qty: x.qty,
+    price: x.price
+  }));
 
   const payload = {
-    name:f.get('name'),
-    phone:f.get('phone'),
-    address:f.get('address'),
-    type:f.get('type'),
-    payment:f.get('payment'),
-    comment:f.get('comment'),
+    name: f.get('name'),
+    phone: f.get('phone'),
+    address: f.get('address'),
+    type: f.get('type'),
+    payment: f.get('payment'),
+    comment: f.get('comment'),
     items,
-    total:cart.reduce((a,x) => a + x.qty * x.price, 0)
+    total: cart.reduce((a,x) => a + x.qty * x.price, 0),
+
+    latitude: customerLocation ? customerLocation.latitude : null,
+    longitude: customerLocation ? customerLocation.longitude : null
   };
 
   const note = document.getElementById('formNote');
   note.textContent = 'Отправляем заказ…';
 
-  try {
-    const r = await fetch('/api/order',{
+  try{
+
+    const r = await fetch('/api/order', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
@@ -147,16 +243,32 @@ document.getElementById('orderForm').addEventListener('submit', async e => {
 
     if(!r.ok) throw new Error();
 
-    note.textContent = 'Заказ принят! Скоро с вами свяжутся.';
+    note.textContent =
+      'Заказ принят! Скоро с вами свяжутся.';
+
     cart = [];
+    customerLocation = null;
+
     updateCart();
     e.target.reset();
-  } catch(err) {
-    note.textContent = 'Не удалось отправить. Проверьте соединение и попробуйте ещё раз.';
+
+    const locationNote = document.getElementById('locationNote');
+
+    if(locationNote){
+      locationNote.textContent = '';
+    }
+
+  }catch(err){
+
+    note.textContent =
+      'Не удалось отправить. Проверьте соединение и попробуйте ещё раз.';
+
   }
+
 });
 
 renderCats();
-showCat('hotdog',document.querySelector('.cats button'));
+showCat('hotdog', document.querySelector('.cats button'));
 updateCart();
+
 
