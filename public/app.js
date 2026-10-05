@@ -70,39 +70,4 @@ document.getElementById('orderForm').addEventListener('submit',async e=>{
 });
 renderCats(); showCat('hotdog',document.querySelector('.cats button')); updateCart();
 // ===== СОХРАНЕНИЕ ДАННЫХ КЛИЕНТА =====
-const CUSTOMER_STORAGE_KEY = 'vibe_customer_data';
 
-function loadCustomerData() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(CUSTOMER_STORAGE_KEY));
-    if (!saved) return;
-
-    const form = document.getElementById('orderForm');
-
-    if (saved.name) form.elements.name.value = saved.name;
-    if (saved.phone) form.elements.phone.value = saved.phone;
-    if (saved.address) form.elements.address.value = saved.address;
-  } catch (e) {
-    console.log('Не удалось загрузить данные клиента');
-  }
-}
-
-function saveCustomerData() {
-  const form = document.getElementById('orderForm');
-
-  const data = {
-    name: form.elements.name.value.trim(),
-    phone: form.elements.phone.value.trim(),
-    address: form.elements.address.value.trim()
-  };
-
-  if (data.name  data.phone  data.address) {
-    localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(data));
-  }
-}
-
-// Сохраняем данные при вводе
-document.getElementById('orderForm').addEventListener('input', saveCustomerData);
-
-// Загружаем сохранённые данные при открытии сайта
-loadCustomerData();
