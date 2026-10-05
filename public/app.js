@@ -123,7 +123,7 @@ function openCart(){
 }
 
 function closeCart(e){
-  if(!e || e.target.id === 'overlay') {
+  if(!e || e.target.id === 'overlay'){
     document.getElementById('overlay').classList.remove('open');
   }
 }
@@ -180,4 +180,3 @@ document.getElementById('orderForm').addEventListener('submit', async e => {
 renderCats();
 showCat('hotdog', document.querySelector('.cats button'));
 updateCart();
-
