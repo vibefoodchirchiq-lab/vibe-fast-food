@@ -27,20 +27,10 @@ const cats = [
   ['drinks', '🥤 Напитки'], ['combo', '🍟 Комбо'], ['sauce', '🥫 Соусы']
 ];
 
-const DELIVERY_FEE = 10000;
 let cart = [];
 let customerLocation = null;
 
 const money = n => Number(n || 0).toLocaleString('ru-RU') + ' сум';
-
-function getItemsTotal() {
-  return cart.reduce((sum, x) => sum + x.qty * x.price, 0);
-}
-
-function getDeliveryFee() {
-  const type = document.querySelector('input[name="type"]:checked')?.value;
-  return type === 'delivery' ? DELIVERY_FEE : 0;
-}
 
 function renderCats() {
   document.getElementById('categories').innerHTML = cats.map((c, i) =>
@@ -81,18 +71,14 @@ function changeQty(index, delta) {
 }
 
 function updateCart() {
-  const itemsTotal = getItemsTotal();
-  const deliveryFee = getDeliveryFee();
-  const grandTotal = itemsTotal + deliveryFee;
+  const total = cart.reduce((sum, x) => sum + x.qty * x.price, 0);
 
   document.getElementById('cartCount').textContent =
     cart.reduce((sum, x) => sum + x.qty, 0);
 
-  document.getElementById('cartTotal').textContent = money(grandTotal);
-  document.getElementById('sumItems').textContent = money(itemsTotal);
-  document.getElementById('deliveryCost').textContent =
-    deliveryFee ? money(deliveryFee) : '0 сум';
-  document.getElementById('grandTotal').textContent = money(grandTotal);
+  document.getElementById('cartTotal').textContent = money(total);
+  document.getElementById('sumItems').textContent = money(total);
+  document.getElementById('grandTotal').textContent = money(total);
 
   document.getElementById('floatingCart').style.display =
     cart.length ? 'flex' : 'none';
@@ -146,11 +132,7 @@ function getLocation() {
       else if (error.code === 2) note.textContent = 'Не удалось определить локацию.';
       else note.textContent = 'Время ожидания геолокации истекло.';
     },
-    {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 0
-    }
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
   );
 }
 
@@ -163,15 +145,8 @@ document.getElementById('orderForm').addEventListener('submit', async e => {
   }
 
   const f = new FormData(e.target);
-  const items = cart.map(x => ({
-    name: x.name,
-    qty: x.qty,
-    price: x.price
-  }));
-
-  const itemsTotal = getItemsTotal();
-  const deliveryFee = getDeliveryFee();
-  const total = itemsTotal + deliveryFee;
+  const items = cart.map(x => ({ name: x.name, qty: x.qty, price: x.price }));
+  const total = cart.reduce((sum, x) => sum + x.qty * x.price, 0);
 
   const payload = {
     name: f.get('name'),
@@ -181,8 +156,6 @@ document.getElementById('orderForm').addEventListener('submit', async e => {
     payment: f.get('payment'),
     comment: f.get('comment'),
     items,
-    itemsTotal,
-    deliveryFee,
     total,
     latitude: customerLocation ? customerLocation.latitude : null,
     longitude: customerLocation ? customerLocation.longitude : null
@@ -203,21 +176,13 @@ document.getElementById('orderForm').addEventListener('submit', async e => {
     note.textContent = 'Заказ принят! Скоро с вами свяжутся.';
     cart = [];
     customerLocation = null;
-    document.getElementById('locationNote').textContent = '';
     updateCart();
     e.target.reset();
-    updateCart();
   } catch (err) {
     note.textContent = 'Не удалось отправить. Проверьте соединение и попробуйте ещё раз.';
   }
 });
 
-document.querySelectorAll('input[name="type"]').forEach(radio => {
-  radio.addEventListener('change', updateCart);
-});
-
 renderCats();
 showCat('hotdog', document.querySelector('.cats button'));
 updateCart();
-
-
