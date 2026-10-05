@@ -43,6 +43,10 @@
       <input name="name" required placeholder="Ваше имя">
       <input name="phone" required type="tel" placeholder="Номер телефона">
       <textarea name="address" required placeholder="Адрес доставки"></textarea>
+<button type="button" class="location-btn" onclick="getLocation()">
+  📍 Определить мою локацию
+</button>
+<p id="locationNote" class="location-note"></p>
       <div class="switch">
         <label><input type="radio" name="type" value="delivery" checked> Доставка</label>
         <label><input type="radio" name="type" value="pickup"> Самовывоз</label>
