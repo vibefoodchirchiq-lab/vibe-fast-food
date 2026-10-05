@@ -9,6 +9,8 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+const DELIVERY_FEE = 10000;
+
 app.post('/api/order', async (req, res) => {
   const {
     name,
@@ -18,7 +20,6 @@ app.post('/api/order', async (req, res) => {
     payment,
     comment,
     items,
-    total,
     latitude,
     longitude
   } = req.body || {};
@@ -38,17 +39,23 @@ app.post('/api/order', async (req, res) => {
     });
   }
 
-  const lines = items.map(x =>
-    `• ${x.name} × ${x.qty} — ${Number(x.price * x.qty).toLocaleString('ru-RU')} сум`
+  const itemsTotal = items.reduce(
+    (sum, item) => sum + Number(item.price || 0) * Number(item.qty || 0),
+    0
+  );
+
+  const deliveryFee = type === 'delivery' ? DELIVERY_FEE : 0;
+  const total = itemsTotal + deliveryFee;
+
+  const lines = items.map(item =>
+    `• ${item.name} × ${item.qty} — ${Number(item.price * item.qty).toLocaleString('ru-RU')} сум`
   ).join('\n');
 
   let locationText = '';
 
   if (latitude && longitude) {
     const mapLink = `https://maps.google.com/?q=${latitude},${longitude}`;
-
-    locationText =
-      `\n\n📍 ТОЧНАЯ ЛОКАЦИЯ:\n${mapLink}`;
+    locationText = `\n\n📍 ТОЧНАЯ ЛОКАЦИЯ:\n${mapLink}`;
   }
 
   const text =
@@ -59,7 +66,9 @@ app.post('/api/order', async (req, res) => {
     `🚚 Тип: ${type === 'delivery' ? 'Доставка' : 'Самовывоз'}\n` +
     `💳 Оплата: ${payment === 'cash' ? 'Наличными' : 'Картой'}\n\n` +
     `${lines}\n\n` +
-    `💰 ИТОГО: ${Number(total).toLocaleString('ru-RU')} сум` +
+    `🛒 ТОВАРЫ: ${itemsTotal.toLocaleString('ru-RU')} сум\n` +
+    `🚚 ДОСТАВКА: ${deliveryFee.toLocaleString('ru-RU')} сум\n` +
+    `💰 ИТОГО: ${total.toLocaleString('ru-RU')} сум` +
     `${comment ? `\n\n💬 Комментарий: ${comment}` : ''}` +
     locationText;
 
@@ -103,4 +112,3 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`VIBE site: http://localhost:${port}`);
 });
-
